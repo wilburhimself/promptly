@@ -42,9 +42,6 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-    
-    - name: Disable Bundler frozen mode
-      run: bundle config set frozen false
 
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
