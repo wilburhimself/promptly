@@ -8,6 +8,6 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
-  config.order = :random
-  Kernel.srand config.seed
+  # Use deterministic order to avoid load-order issues
+  config.order = :defined
 end

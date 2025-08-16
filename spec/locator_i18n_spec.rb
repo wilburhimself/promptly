@@ -3,9 +3,14 @@
 require "spec_helper"
 require "fileutils"
 require "tmpdir"
-require "i18n"
 
 RSpec.describe RailsAiPrompts::Locator do
+  before do
+    require "i18n"
+  rescue LoadError
+    skip "i18n gem not installed"
+  end
+
   around do |ex|
     Dir.mktmpdir do |dir|
       prompts_root = File.join(dir, "app", "prompts", "user_onboarding")

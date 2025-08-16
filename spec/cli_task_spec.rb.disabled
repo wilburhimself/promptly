@@ -6,19 +6,29 @@ require "fileutils"
 require "tmpdir"
 
 RSpec.describe "ai_prompts:preview rake task" do
-  let(:rake) { Rake::Application.new }
+  around do |example|
+    original_app = Rake.application
+    original_tasks = Rake::Task.tasks.dup
+    
+    begin
+      # Create completely isolated Rake environment
+      Rake::Task.clear
+      rake_app = Rake::Application.new
+      Rake.application = rake_app
+      
+      # Define environment task
+      rake_app.define_task(Rake::Task, :environment)
+      
+      # Load our rake tasks
+      load File.expand_path("../lib/rails_ai_prompts/tasks/ai_prompts.rake", __dir__)
 
-  before do
-    # Use our own Rake app and satisfy environment dependency on it
-    Rake.application = rake
-    rake.define_task(Rake::Task, :environment)
-
-    # Load our rake tasks on this app
-    load File.expand_path("../lib/rails_ai_prompts/tasks/ai_prompts.rake", __dir__)
-  end
-
-  after do
-    Rake.application = nil
+      example.run
+    ensure
+      # Restore original state completely
+      Rake::Task.clear
+      original_tasks.each { |task| Rake::Task.define_task(task.class, task.name, &task.actions.first) } if original_tasks
+      Rake.application = original_app
+    end
   end
 
   it "prints rendered output for the given identifier and locale" do
@@ -29,7 +39,7 @@ RSpec.describe "ai_prompts:preview rake task" do
 
       RailsAiPrompts.prompts_path = File.join(dir, "app", "prompts")
 
-      task = rake["ai_prompts:preview"]
+      task = Rake::Task["ai_prompts:preview"]
 
       out, err = capture_io do
         task.reenable # allow multiple invocations in same process
