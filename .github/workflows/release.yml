@@ -35,12 +35,17 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    env:
+      BUNDLE_FROZEN: "false"
     
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
     
+    - name: Disable Bundler frozen mode
+      run: bundle config set frozen false
+
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
@@ -63,6 +68,10 @@ jobs:
           echo "exists=false" >> $GITHUB_OUTPUT
         fi
     
+    - name: Normalize lockfile platforms
+      if: steps.tag_check.outputs.exists == 'false'
+      run: bundle lock --normalize-platforms
+
     - name: Build gem
       if: steps.tag_check.outputs.exists == 'false'
       run: gem build promptly.gemspec
