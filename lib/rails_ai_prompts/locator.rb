@@ -13,12 +13,15 @@ module RailsAiPrompts
     # returns absolute path to template file or nil
     def self.resolve(identifier, locale: nil)
       base = File.join(prompts_path, identifier)
-      locale = (locale || (defined?(I18n) ? I18n.locale : nil))&.to_s
+      requested_locale = (locale || (defined?(I18n) ? I18n.locale : nil))&.to_s
+      default_locale = (defined?(I18n) ? I18n.default_locale : nil)&.to_s
 
       candidates = []
-      if locale
-        SUPPORTED_EXTS.each do |ext|
-          candidates << "#{base}.#{locale}#{ext}"
+      [requested_locale, default_locale, nil].compact.uniq.each do |loc|
+        if loc
+          SUPPORTED_EXTS.each do |ext|
+            candidates << "#{base}.#{loc}#{ext}"
+          end
         end
       end
       SUPPORTED_EXTS.each do |ext|
