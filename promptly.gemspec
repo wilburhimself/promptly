@@ -35,11 +35,24 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Runtime dependencies
-  spec.add_dependency "actionview", "~> 7.0"
+  # Activesupport 7.0 depends on deprecated 'mutex_m' which is removed in Ruby 3.4.
+  # Allow newer Rails on newer Rubies while keeping Rails 7.0 on Ruby 3.1.
+  if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.2.0")
+    spec.add_dependency "actionview", "~> 7.0"
+  else
+    spec.add_dependency "actionview", ">= 7.2", "< 7.3"
+  end
 
   # Development dependencies
   spec.add_development_dependency "rspec", "~> 3.12"
   spec.add_development_dependency "standard", "~> 1.37"
   spec.add_development_dependency "liquid", "~> 5.5"
-  spec.add_development_dependency "railties", "~> 7.0"
+  # Conditionally pin railties for dev/test to support multiple Ruby versions:
+  # - Ruby < 3.2 (e.g., CI 3.1): use 7.0.8.x to avoid pulling erb 5.x
+  # - Ruby >= 3.2 (e.g., local 3.4): allow 7.2+ to avoid mutex_m issues
+  if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.2.0")
+    spec.add_development_dependency "railties", "~> 7.0.8"
+  else
+    spec.add_development_dependency "railties", ">= 7.2", "< 7.3"
+  end
 end
