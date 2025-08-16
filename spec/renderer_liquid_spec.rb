@@ -1,7 +1,17 @@
 # frozen_string_literal: true
 
 require "spec_helper"
-require "liquid"
+
+begin
+  require "liquid"
+rescue LoadError
+  RSpec.describe "Liquid rendering" do
+    it "skips when liquid gem is not installed" do
+      skip "liquid gem not installed"
+    end
+  end
+  return
+end
 
 RSpec.describe RailsAiPrompts::Renderer do
   describe ".render with Liquid" do
