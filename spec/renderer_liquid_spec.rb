@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe RailsAiPrompts::Renderer do
+RSpec.describe Promptly::Renderer do
   describe ".render with Liquid" do
     it "renders Liquid with locals" do
       begin

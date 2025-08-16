@@ -5,6 +5,7 @@ namespace :ai_prompts do
   task :preview, [:identifier, :locale] => :environment do |_, args|
     identifier = args[:identifier]
     locale = args[:locale]
+    prompts_path = ENV["PROMPTS_PATH"]
 
     unless identifier
       warn "Usage: rake ai_prompts:preview[identifier,locale]"
@@ -12,9 +13,11 @@ namespace :ai_prompts do
     end
 
     begin
-      output = RailsAiPrompts.preview(identifier, locale: locale)
+      Promptly.prompts_path = prompts_path if prompts_path
+
+      output = Promptly.preview(identifier, locale: locale)
       puts output
-    rescue => e
+    rescue Promptly::Error => e
       warn "Error: #{e.class}: #{e.message}"
       exit 1
     end

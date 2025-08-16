@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-module RailsAiPrompts
+module Promptly
   class Locator
     SUPPORTED_EXTS = [".erb", ".liquid"].freeze
 
     def self.prompts_path
-      RailsAiPrompts.prompts_path
+      Promptly.prompts_path
     end
 
     # identifier: e.g. "user_onboarding/welcome"

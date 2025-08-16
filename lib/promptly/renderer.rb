@@ -2,7 +2,7 @@
 
 require "action_view"
 
-module RailsAiPrompts
+module Promptly
   class Renderer
     def self.render(template, locals: {}, engine: :erb)
       case engine.to_sym

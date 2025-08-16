@@ -4,7 +4,7 @@ require "spec_helper"
 require "fileutils"
 require "tmpdir"
 
-RSpec.describe RailsAiPrompts::Locator do
+RSpec.describe Promptly::Locator do
   before do
     require "i18n"
   rescue LoadError
@@ -17,10 +17,10 @@ RSpec.describe RailsAiPrompts::Locator do
       FileUtils.mkdir_p(prompts_root)
       @base = File.join(dir, "app", "prompts")
       @identifier = "user_onboarding/welcome"
-      RailsAiPrompts.prompts_path = @base
+      Promptly.prompts_path = @base
       ex.run
     ensure
-      RailsAiPrompts.prompts_path = nil
+      Promptly.prompts_path = nil
     end
   end
 

@@ -1,4 +1,4 @@
-# rails_ai_prompts
+# Promptly
 
 Opinionated Rails integration for reusable AI prompt templates. Build maintainable, localized, and testable AI prompts using ERB or Liquid templates with Rails conventions.
 
@@ -15,7 +15,7 @@ Opinionated Rails integration for reusable AI prompt templates. Build maintainab
 Add to your Gemfile:
 
 ```ruby
-gem "rails_ai_prompts"
+gem "promptly"
 ```
 
 For Liquid template support, also add:
@@ -82,7 +82,7 @@ Mantén el email conciso (menos de 200 palabras) y orientado a la acción.
 
 ```ruby
 # In a controller, service, or anywhere in Rails
-prompt = RailsAiPrompts.preview(
+prompt = Promptly.preview(
   "user_onboarding/welcome_email",
   locale: :es,
   locals: {
@@ -110,7 +110,7 @@ puts ai_response.dig("choices", 0, "message", "content")
 rails console
 
 # Preview the prompt before sending to AI
-prompt = RailsAiPrompts.preview(
+prompt = Promptly.preview(
   "user_onboarding/welcome_email", 
   locale: :en, 
   locals: {
@@ -125,7 +125,7 @@ puts prompt
 
 # Uses I18n.locale by default
 I18n.locale = :es
-prompt = RailsAiPrompts.preview(
+prompt = Promptly.preview(
   "user_onboarding/welcome_email", 
   locals: {
     name: "María García", 
@@ -155,7 +155,7 @@ rails ai_prompts:preview[user_onboarding/welcome_email]
 # app/services/ai_prompt_service.rb
 class AiPromptService
   def self.generate_welcome_email(user, locale: I18n.locale)
-    prompt = RailsAiPrompts.preview(
+    prompt = Promptly.preview(
       "user_onboarding/welcome_email",
       locale: locale,
       locals: {
@@ -219,7 +219,7 @@ class GenerateAiContentJob < ApplicationJob
   def perform(user_id, prompt_identifier, locals = {})
     user = User.find(user_id)
     
-    prompt = RailsAiPrompts.preview(
+    prompt = Promptly.preview(
       prompt_identifier,
       locale: user.locale,
       locals: locals.merge(
@@ -285,7 +285,7 @@ app/prompts/
 
 ### Locale Resolution
 
-RailsAiPrompts follows this resolution order:
+Promptly follows this resolution order:
 
 1. **Requested locale**: `welcome.es.erb` (if `locale: :es` specified)
 2. **Default locale**: `welcome.en.erb` (if `I18n.default_locale == :en`)
@@ -302,7 +302,7 @@ I18n.locale = :es
 I18n.default_locale = :en
 
 # Will try: welcome_email.es.erb → welcome_email.en.erb → welcome_email.erb
-prompt = RailsAiPrompts.preview(
+prompt = Promptly.preview(
   "user_onboarding/welcome_email", 
   locals: {
     name: "María García",
@@ -314,7 +314,7 @@ prompt = RailsAiPrompts.preview(
 )
 
 # Force specific locale for AI prompt generation
-prompt = RailsAiPrompts.preview(
+prompt = Promptly.preview(
   "content_generation/blog_post_outline", 
   locale: :fr, 
   locals: {
@@ -356,7 +356,7 @@ Format your response as a conversational coaching session, not a formal report.
 
 ```ruby
 # Generate AI coaching content with Liquid template
-prompt = RailsAiPrompts.preview(
+prompt = Promptly.preview(
   "ai_coaching/goal_review",
   locale: :en,
   locals: {
@@ -381,7 +381,7 @@ ai_coaching_session = openai_client.chat(
 
 ```ruby
 # config/initializers/rails_ai_prompts.rb
-RailsAiPrompts.prompts_path = Rails.root.join("lib", "ai_prompts")
+Promptly.prompts_path = Rails.root.join("lib", "ai_prompts")
 ```
 
 ### Direct Template Rendering
@@ -389,16 +389,16 @@ RailsAiPrompts.prompts_path = Rails.root.join("lib", "ai_prompts")
 ```ruby
 # Render ERB directly (without file lookup)
 template = "Hello <%= name %>, welcome to <%= app %>!"
-output = RailsAiPrompts.render(template, locals: {name: "John", app: "MyApp"})
+output = Promptly.render(template, locals: {name: "John", app: "MyApp"})
 
 # Render Liquid directly
 template = "Hello {{ name }}, welcome to {{ app }}!"
-output = RailsAiPrompts.render(template, locals: {name: "John", app: "MyApp"}, engine: :liquid)
+output = Promptly.render(template, locals: {name: "John", app: "MyApp"}, engine: :liquid)
 ```
 
 ## API Reference
 
-### `RailsAiPrompts.preview(identifier, locale: nil, locals: {})`
+### `Promptly.preview(identifier, locale: nil, locals: {})`
 
 Renders a template by identifier with locale fallback.
 
@@ -406,7 +406,7 @@ Renders a template by identifier with locale fallback.
 - **locale**: Specific locale (defaults to `I18n.locale`)
 - **locals**: Hash of variables for template
 
-### `RailsAiPrompts.render(template, locals: {}, engine: :erb)`
+### `Promptly.render(template, locals: {}, engine: :erb)`
 
 Renders template string directly.
 
@@ -414,7 +414,7 @@ Renders template string directly.
 - **locals**: Hash of variables
 - **engine**: `:erb` or `:liquid`
 
-### `RailsAiPrompts.prompts_path`
+### `Promptly.prompts_path`
 
 Get/set the root directory for prompt templates (defaults to `Rails.root/app/prompts`).
 
