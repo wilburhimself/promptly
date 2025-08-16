@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    promptly (0.1.5)
-      actionview (>= 7.2, < 7.3)
+    promptly (0.1.6)
+      actionview (~> 7.2)
 
 GEM
   remote: https://rubygems.org/
@@ -177,7 +177,7 @@ PLATFORMS
 DEPENDENCIES
   liquid (~> 5.5)
   promptly!
-  railties (>= 7.2, < 7.3)
+  railties (~> 7.2)
   rspec (~> 3.12)
   standard (~> 1.37)
 
