@@ -16,11 +16,14 @@ module RailsAiPrompts
     end
 
     def self.render_erb(template, locals)
-      av = if ActionView::Base.respond_to?(:empty)
-        ActionView::Base.empty
+      view_class = if ActionView::Base.respond_to?(:with_empty_template_cache)
+        ActionView::Base.with_empty_template_cache
       else
-        ActionView::Base.new(ActionView::LookupContext.new([]), {}, nil)
+        Class.new(ActionView::Base)
       end
+
+      lookup = ActionView::LookupContext.new(ActionView::PathSet.new([]))
+      av = view_class.new(lookup, {}, nil)
 
       av.render(inline: template, type: :erb, locals: locals || {})
     end
