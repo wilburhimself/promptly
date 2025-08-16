@@ -7,5 +7,9 @@ module RailsAiPrompts
       # Hook points will be added as features land.
       Rails.logger.info("[rails_ai_prompts] loaded") if defined?(Rails.logger)
     end
+
+    rake_tasks do
+      load File.expand_path("tasks/ai_prompts.rake", __dir__)
+    end
   end
 end
