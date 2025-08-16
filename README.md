@@ -7,8 +7,9 @@ Opinionated Rails integration for reusable AI prompt templates. Build maintainab
 - **Template rendering**: ERB (via ActionView) and optional Liquid support
 - **I18n integration**: Automatic locale fallback (`welcome.es.erb` → `welcome.en.erb` → `welcome.erb`)
 - **Rails conventions**: Store prompts in `app/prompts/` with organized subdirectories
-- **Preview & CLI**: Test prompts in Rails console or via rake tasks
+- **Render & CLI**: Test prompts in Rails console or via rake tasks
 - **Minimal setup**: Auto-loads via Railtie, zero configuration required
+- **Prompt caching**: Configurable cache store, TTL, and cache-bypass options
 
 ## Install
 
@@ -384,6 +385,49 @@ ai_coaching_session = openai_client.chat(
 Promptly.prompts_path = Rails.root.join("lib", "ai_prompts")
 ```
 
+### Caching
+
+Promptly supports optional caching for rendered prompts.
+
+- Default: enabled, TTL = 3600 seconds (1 hour).
+- In Rails, the Railtie auto-uses `Rails.cache` if present.
+
+Configure globally:
+
+```ruby
+# config/initializers/promptly.rb
+Promptly::Cache.configure do |c|
+  c.store = Rails.cache # or any ActiveSupport::Cache store
+  c.ttl = 3600          # default TTL in seconds
+  c.enabled = true      # globally enable/disable caching
+end
+```
+
+Per-call options:
+
+```ruby
+# Bypass cache for this render only
+Promptly.render("user_onboarding/welcome_email", locals: {...}, cache: false)
+
+# Custom TTL for this render only
+Promptly.render("user_onboarding/welcome_email", locals: {...}, ttl: 5.minutes)
+```
+
+Invalidation:
+
+```ruby
+# Clear entire cache store (if supported by the store)
+Promptly::Cache.clear
+
+# Delete a specific cached entry
+Promptly::Cache.delete(
+  identifier: "user_onboarding/welcome_email",
+  locale: :en,
+  locals: {name: "John"},
+  prompts_path: Promptly.prompts_path
+)
+```
+
 ### Direct Template Rendering
 
 ```ruby
@@ -398,13 +442,15 @@ output = Promptly.render_template(template, locals: {name: "John", app: "MyApp"}
 
 ## API Reference
 
-### `Promptly.render(identifier, locale: nil, locals: {})`
+### `Promptly.render(identifier, locale: nil, locals: {}, cache: true, ttl: nil)`
 
-Renders a template by identifier with locale fallback.
+Renders a template by identifier with locale fallback and optional caching.
 
 - **identifier**: Template path like `"user_onboarding/welcome"`
 - **locale**: Specific locale (defaults to `I18n.locale`)
 - **locals**: Hash of variables for template
+- **cache**: Enable/disable caching for this call (defaults to `true`)
+- **ttl**: Time-to-live in seconds for cache entry (overrides default TTL)
 
 ### `Promptly.render_template(template, locals: {}, engine: :erb)`
 

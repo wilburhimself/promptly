@@ -3,6 +3,7 @@
 require_relative "promptly/version"
 require_relative "promptly/renderer"
 require_relative "promptly/locator"
+require_relative "promptly/cache"
 
 module Promptly
   class Error < StandardError; end
@@ -23,7 +24,24 @@ module Promptly
   # Render a template by identifier using locator rules
   # identifier: "user_onboarding/welcome"
   # locale: defaults to I18n.locale when available
-  def self.render(identifier, locale: nil, locals: {})
+  def self.render(identifier, locale: nil, locals: {}, cache: true, ttl: nil)
+    if cache && Cache.enabled?
+      cache_key = {
+        identifier: identifier,
+        locale: locale,
+        locals: locals,
+        prompts_path: prompts_path
+      }
+
+      Cache.fetch(cache_key, ttl: ttl) do
+        render_without_cache(identifier, locale: locale, locals: locals)
+      end
+    else
+      render_without_cache(identifier, locale: locale, locals: locals)
+    end
+  end
+
+  private_class_method def self.render_without_cache(identifier, locale: nil, locals: {})
     path = Locator.resolve(identifier, locale: locale)
     raise Error, "Template not found for '#{identifier}' (locale: #{locale.inspect}) under #{prompts_path}" unless path
 
