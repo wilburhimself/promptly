@@ -29,7 +29,7 @@ jobs:
       run: bundle exec rspec
     
     - name: Run linter
-      run: bundle exec rake standard
+      run: bundle exec standardrb
 
   release:
     needs: test
