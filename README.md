@@ -34,52 +34,74 @@ bundle install
 
 ### 1. Create prompt templates
 
-Create `app/prompts/user_onboarding/welcome.en.erb`:
+Create `app/prompts/user_onboarding/welcome_email.en.erb`:
 
 ```erb
-Hello <%= name %>,
+You are a friendly customer success manager writing a personalized welcome email.
 
-Welcome to <%= app_name %>! Here's what you can do:
+Context:
+- User name: <%= name %>
+- App name: <%= app_name %>
+- User's role: <%= user_role %>
+- Available features for this user: <%= features.join(", ") %>
+- User signed up <%= days_since_signup %> days ago
 
-<% features.each do |feature| %>
-- <%= feature %>
-<% end %>
+Task: Write a warm, personalized welcome email that:
+1. Addresses the user by name
+2. Explains the key benefits specific to their role
+3. Highlights 2-3 most relevant features they should try first
+4. Includes a clear call-to-action to get started
+5. Maintains a professional but friendly tone
 
-Best regards,
-The <%= app_name %> Team
+Keep the email concise (under 200 words) and actionable.
 ```
 
-Create `app/prompts/user_onboarding/welcome.es.erb`:
+Create `app/prompts/user_onboarding/welcome_email.es.erb`:
 
 ```erb
-Hola <%= name %>,
+Eres un gerente de éxito del cliente amigable escribiendo un email de bienvenida personalizado.
 
-¡Bienvenido a <%= app_name %>! Esto es lo que puedes hacer:
+Contexto:
+- Nombre del usuario: <%= name %>
+- Nombre de la app: <%= app_name %>
+- Rol del usuario: <%= user_role %>
+- Funciones disponibles para este usuario: <%= features.join(", ") %>
+- El usuario se registró hace <%= days_since_signup %> días
 
-<% features.each do |feature| %>
-- <%= feature %>
-<% end %>
+Tarea: Escribe un email de bienvenida cálido y personalizado que:
+1. Se dirija al usuario por su nombre
+2. Explique los beneficios clave específicos para su rol
+3. Destaque 2-3 funciones más relevantes que debería probar primero
+4. Incluya una llamada a la acción clara para comenzar
+5. Mantenga un tono profesional pero amigable
 
-Saludos,
-El equipo de <%= app_name %>
+Mantén el email conciso (menos de 200 palabras) y orientado a la acción.
 ```
 
 ### 2. Render in your Rails app
 
 ```ruby
 # In a controller, service, or anywhere in Rails
-output = RailsAiPrompts.preview(
-  "user_onboarding/welcome",
+prompt = RailsAiPrompts.preview(
+  "user_onboarding/welcome_email",
   locale: :es,
   locals: {
-    name: "María",
-    app_name: "MyApp",
-    features: ["Create projects", "Invite team members", "Track progress"]
+    name: "María García",
+    app_name: "ProjectHub",
+    user_role: "Team Lead",
+    features: ["Create projects", "Invite team members", "Track progress", "Generate reports"],
+    days_since_signup: 2
   }
 )
 
-puts output
-# => "Hola María,\n\n¡Bienvenido a MyApp! ..."
+# Send to your AI service (OpenAI, Anthropic, etc.)
+ai_response = openai_client.completions(
+  model: "gpt-4",
+  messages: [{role: "user", content: prompt}]
+)
+
+puts ai_response.dig("choices", 0, "message", "content")
+# => AI-generated personalized welcome email in Spanish
 ```
 
 ### 3. Test via Rails console
@@ -87,22 +109,42 @@ puts output
 ```ruby
 rails console
 
-# Preview with specific locale
-RailsAiPrompts.preview("user_onboarding/welcome", locale: :en, locals: {name: "John", app_name: "MyApp", features: ["Feature 1"]})
+# Preview the prompt before sending to AI
+prompt = RailsAiPrompts.preview(
+  "user_onboarding/welcome_email", 
+  locale: :en, 
+  locals: {
+    name: "John Smith", 
+    app_name: "ProjectHub", 
+    user_role: "Developer",
+    features: ["API access", "Code reviews", "Deployment tools"],
+    days_since_signup: 1
+  }
+)
+puts prompt
 
 # Uses I18n.locale by default
 I18n.locale = :es
-RailsAiPrompts.preview("user_onboarding/welcome", locals: {name: "María", app_name: "MyApp", features: ["Función 1"]})
+prompt = RailsAiPrompts.preview(
+  "user_onboarding/welcome_email", 
+  locals: {
+    name: "María García", 
+    app_name: "ProjectHub",
+    user_role: "Team Lead",
+    features: ["Crear proyectos", "Invitar miembros", "Seguimiento"],
+    days_since_signup: 3
+  }
+)
 ```
 
 ### 4. CLI preview
 
 ```bash
-# Preview specific locale
-rails ai_prompts:preview[user_onboarding/welcome,es]
+# Preview specific locale (shows the prompt, not AI output)
+rails ai_prompts:preview[user_onboarding/welcome_email,es]
 
 # Uses default locale
-rails ai_prompts:preview[user_onboarding/welcome]
+rails ai_prompts:preview[user_onboarding/welcome_email]
 ```
 
 ## Rails App Integration
@@ -113,22 +155,41 @@ rails ai_prompts:preview[user_onboarding/welcome]
 # app/services/ai_prompt_service.rb
 class AiPromptService
   def self.generate_welcome_email(user, locale: I18n.locale)
-    RailsAiPrompts.preview(
-      "user_onboarding/welcome",
+    prompt = RailsAiPrompts.preview(
+      "user_onboarding/welcome_email",
       locale: locale,
       locals: {
-        name: user.name,
+        name: user.full_name,
         app_name: Rails.application.class.module_parent_name,
-        features: current_features_for(user)
+        user_role: user.role.humanize,
+        features: available_features_for(user),
+        days_since_signup: (Date.current - user.created_at.to_date).to_i
       }
     )
+    
+    # Send to AI service and return generated content
+    openai_client.chat(
+      model: "gpt-4",
+      messages: [{role: "user", content: prompt}]
+    ).dig("choices", 0, "message", "content")
   end
 
   private
 
-  def self.current_features_for(user)
+  def self.available_features_for(user)
     # Return features based on user's plan, role, etc.
-    ["Create projects", "Invite team members"]
+    case user.plan
+    when "basic"
+      ["Create projects", "Basic reporting"]
+    when "pro"
+      ["Create projects", "Team collaboration", "Advanced analytics", "API access"]
+    else
+      ["Create projects"]
+    end
+  end
+
+  def self.openai_client
+    @openai_client ||= OpenAI::Client.new(access_token: Rails.application.credentials.openai_api_key)
   end
 end
 ```
@@ -153,27 +214,53 @@ end
 ### Background Job Usage
 
 ```ruby
-# app/jobs/send_ai_notification_job.rb
-class SendAiNotificationJob < ApplicationJob
+# app/jobs/generate_ai_content_job.rb
+class GenerateAiContentJob < ApplicationJob
   def perform(user_id, prompt_identifier, locals = {})
     user = User.find(user_id)
     
-    content = RailsAiPrompts.preview(
+    prompt = RailsAiPrompts.preview(
       prompt_identifier,
       locale: user.locale,
-      locals: locals.merge(user_name: user.name)
+      locals: locals.merge(
+        user_name: user.full_name,
+        user_role: user.role,
+        account_type: user.account_type
+      )
     )
     
-    # Send to AI service, email, SMS, etc.
-    AiService.send_prompt(content)
+    # Generate AI content
+    ai_response = openai_client.chat(
+      model: "gpt-4",
+      messages: [{role: "user", content: prompt}]
+    )
+    
+    generated_content = ai_response.dig("choices", 0, "message", "content")
+    
+    # Store or send the generated content
+    user.notifications.create!(
+      title: "AI Generated Content Ready",
+      content: generated_content,
+      notification_type: prompt_identifier.split('/').last
+    )
+  end
+
+  private
+
+  def openai_client
+    @openai_client ||= OpenAI::Client.new(access_token: Rails.application.credentials.openai_api_key)
   end
 end
 
 # Usage
-SendAiNotificationJob.perform_later(
+GenerateAiContentJob.perform_later(
   user.id,
-  "notifications/project_reminder",
-  {project_name: "My Project", due_date: "tomorrow"}
+  "coaching/goal_review",
+  {
+    current_goals: user.goals.active.pluck(:title),
+    progress_summary: "Made good progress on fitness goals",
+    challenges: ["Time management", "Consistency"]
+  }
 )
 ```
 
@@ -184,17 +271,16 @@ SendAiNotificationJob.perform_later(
 ```
 app/prompts/
 ├── user_onboarding/
-│   ├── welcome.en.erb          # English
-│   ├── welcome.es.erb          # Spanish
-│   ├── welcome.fr.erb          # French
-│   └── welcome.erb             # Fallback (any locale)
-├── notifications/
-│   ├── project_reminder.en.erb
-│   ├── project_reminder.es.erb
-│   └── daily_digest.erb        # Single template for all locales
+│   ├── welcome_email.en.erb          # English AI prompt
+│   ├── welcome_email.es.erb          # Spanish AI prompt
+│   └── onboarding_checklist.erb      # Fallback (any locale)
+├── content_generation/
+│   ├── blog_post_outline.en.erb
+│   ├── social_media_post.es.erb
+│   └── product_description.erb
 └── ai_coaching/
-    ├── goal_setting.en.liquid  # Liquid template
-    └── goal_setting.es.liquid
+    ├── goal_review.en.liquid          # Liquid AI prompt
+    └── goal_review.es.liquid
 ```
 
 ### Locale Resolution
@@ -215,11 +301,28 @@ config.i18n.available_locales = [:en, :es, :fr]
 I18n.locale = :es
 I18n.default_locale = :en
 
-# Will try: welcome.es.erb → welcome.en.erb → welcome.erb
-RailsAiPrompts.preview("user_onboarding/welcome", locals: {name: "María"})
+# Will try: welcome_email.es.erb → welcome_email.en.erb → welcome_email.erb
+prompt = RailsAiPrompts.preview(
+  "user_onboarding/welcome_email", 
+  locals: {
+    name: "María García",
+    app_name: "ProjectHub",
+    user_role: "Manager",
+    features: ["Team management", "Analytics", "Reporting"],
+    days_since_signup: 1
+  }
+)
 
-# Force specific locale
-RailsAiPrompts.preview("user_onboarding/welcome", locale: :fr, locals: {name: "Pierre"})
+# Force specific locale for AI prompt generation
+prompt = RailsAiPrompts.preview(
+  "content_generation/blog_post_outline", 
+  locale: :fr, 
+  locals: {
+    topic: "Intelligence Artificielle",
+    target_audience: "Développeurs",
+    word_count: 1500
+  }
+)
 ```
 
 ### Liquid Templates
@@ -227,38 +330,49 @@ RailsAiPrompts.preview("user_onboarding/welcome", locale: :fr, locals: {name: "P
 For more complex templating needs, use Liquid:
 
 ```liquid
-<!-- app/prompts/ai_coaching/goal_setting.en.liquid -->
-Hi {{ user_name }},
+<!-- app/prompts/ai_coaching/goal_review.en.liquid -->
+You are an experienced life coach conducting a goal review session.
 
-Let's work on your {{ goal_type }} goals:
+Context:
+- Client name: {{ user_name }}
+- Goals being reviewed: {% for goal in current_goals %}{{ goal }}{% unless forloop.last %}, {% endunless %}{% endfor %}
+- Recent progress: {{ progress_summary }}
+- Current challenges: {% for challenge in challenges %}{{ challenge }}{% unless forloop.last %}, {% endunless %}{% endfor %}
+- Review period: {{ review_period | default: "monthly" }}
 
-{% for goal in goals %}
-  {{ forloop.index }}. {{ goal.title }}
-     Target: {{ goal.target }}
-     Deadline: {{ goal.deadline | date: "%B %d, %Y" }}
-{% endfor %}
+Task: Provide a personalized goal review that:
+1. Acknowledges their progress and celebrates wins
+2. Addresses each challenge with specific, actionable advice
+3. Suggests 2-3 concrete next steps for the coming {{ review_period }}
+4. Asks 1-2 thoughtful questions to help them reflect
+5. Maintains an encouraging but realistic tone
 
-{% if goals.size > 3 %}
-You're ambitious! Consider focusing on your top 3 goals first.
+{% if current_goals.size > 5 %}
+Note: The client has many goals. Help them prioritize the most important ones.
 {% endif %}
 
-Best of luck!
+Format your response as a conversational coaching session, not a formal report.
 ```
 
 ```ruby
-# Render Liquid template
-RailsAiPrompts.preview(
-  "ai_coaching/goal_setting",
+# Generate AI coaching content with Liquid template
+prompt = RailsAiPrompts.preview(
+  "ai_coaching/goal_review",
   locale: :en,
   locals: {
     user_name: "Alex",
-    goal_type: "fitness",
-    goals: [
-      {title: "Run 5K", target: "under 25 minutes", deadline: 1.month.from_now},
-      {title: "Gym 3x/week", target: "consistency", deadline: 3.months.from_now}
-    ]
+    current_goals: ["Run 5K under 25min", "Gym 3x/week", "Read 12 books/year"],
+    progress_summary: "Consistent with gym, behind on running pace, ahead on reading",
+    challenges: ["Time management", "Motivation on rainy days"],
+    review_period: "monthly"
   }
 )
+
+# Send to AI service for personalized coaching
+ai_coaching_session = openai_client.chat(
+  model: "gpt-4",
+  messages: [{role: "user", content: prompt}]
+).dig("choices", 0, "message", "content")
 ```
 
 ## Configuration
