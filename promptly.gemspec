@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "Build maintainable, localized, and testable AI prompts using ERB or Liquid templates with Rails conventions"
   spec.homepage = "https://github.com/wilburhimself/promptly"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.0.0"
+  spec.required_ruby_version = ">= 3.3", "< 3.4"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
@@ -34,25 +34,13 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  # Runtime dependencies
-  # Activesupport 7.0 depends on deprecated 'mutex_m' which is removed in Ruby 3.4.
-  # Allow newer Rails on newer Rubies while keeping Rails 7.0 on Ruby 3.1.
-  if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.2.0")
-    spec.add_dependency "actionview", "~> 7.0"
-  else
-    spec.add_dependency "actionview", ">= 7.2", "< 7.3"
-  end
+  # Runtime dependencies (single target: Rails 7.2.x)
+  spec.add_dependency "actionview", "~> 7.2"
 
   # Development dependencies
   spec.add_development_dependency "rspec", "~> 3.12"
   spec.add_development_dependency "standard", "~> 1.37"
   spec.add_development_dependency "liquid", "~> 5.5"
-  # Conditionally pin railties for dev/test to support multiple Ruby versions:
-  # - Ruby < 3.2 (e.g., CI 3.1): use 7.0.8.x to avoid pulling erb 5.x
-  # - Ruby >= 3.2 (e.g., local 3.4): allow 7.2+ to avoid mutex_m issues
-  if Gem::Version.new(RUBY_VERSION) < Gem::Version.new("3.2.0")
-    spec.add_development_dependency "railties", "~> 7.0.8"
-  else
-    spec.add_development_dependency "railties", ">= 7.2", "< 7.3"
-  end
+  # Development dependencies
+  spec.add_development_dependency "railties", "~> 7.2"
 end
