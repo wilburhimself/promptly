@@ -104,7 +104,7 @@ jobs:
         ## Usage
         \`\`\`ruby
         # In your Rails app
-        Promptly.preview("user_onboarding/welcome", locale: :en, locals: {name: "John"})
+        Promptly.render("user_onboarding/welcome", locale: :en, locals: {name: "John"})
         \`\`\`
         
         **Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREV_TAG...${{ steps.version.outputs.tag }}

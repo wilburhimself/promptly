@@ -82,7 +82,7 @@ Mantén el email conciso (menos de 200 palabras) y orientado a la acción.
 
 ```ruby
 # In a controller, service, or anywhere in Rails
-prompt = Promptly.preview(
+prompt = Promptly.render(
   "user_onboarding/welcome_email",
   locale: :es,
   locals: {
@@ -109,8 +109,8 @@ puts ai_response.dig("choices", 0, "message", "content")
 ```ruby
 rails console
 
-# Preview the prompt before sending to AI
-prompt = Promptly.preview(
+# Render the prompt before sending to AI
+prompt = Promptly.render(
   "user_onboarding/welcome_email", 
   locale: :en, 
   locals: {
@@ -125,7 +125,7 @@ puts prompt
 
 # Uses I18n.locale by default
 I18n.locale = :es
-prompt = Promptly.preview(
+prompt = Promptly.render(
   "user_onboarding/welcome_email", 
   locals: {
     name: "María García", 
@@ -137,14 +137,14 @@ prompt = Promptly.preview(
 )
 ```
 
-### 4. CLI preview
+### 4. CLI rendering
 
 ```bash
-# Preview specific locale (shows the prompt, not AI output)
-rails ai_prompts:preview[user_onboarding/welcome_email,es]
+# Render specific locale (shows the prompt, not AI output)
+rails ai_prompts:render[user_onboarding/welcome_email,es]
 
 # Uses default locale
-rails ai_prompts:preview[user_onboarding/welcome_email]
+rails ai_prompts:render[user_onboarding/welcome_email]
 ```
 
 ## Rails App Integration
@@ -155,7 +155,7 @@ rails ai_prompts:preview[user_onboarding/welcome_email]
 # app/services/ai_prompt_service.rb
 class AiPromptService
   def self.generate_welcome_email(user, locale: I18n.locale)
-    prompt = Promptly.preview(
+    prompt = Promptly.render(
       "user_onboarding/welcome_email",
       locale: locale,
       locals: {
@@ -219,7 +219,7 @@ class GenerateAiContentJob < ApplicationJob
   def perform(user_id, prompt_identifier, locals = {})
     user = User.find(user_id)
     
-    prompt = Promptly.preview(
+    prompt = Promptly.render(
       prompt_identifier,
       locale: user.locale,
       locals: locals.merge(
@@ -302,7 +302,7 @@ I18n.locale = :es
 I18n.default_locale = :en
 
 # Will try: welcome_email.es.erb → welcome_email.en.erb → welcome_email.erb
-prompt = Promptly.preview(
+prompt = Promptly.render(
   "user_onboarding/welcome_email", 
   locals: {
     name: "María García",
@@ -314,7 +314,7 @@ prompt = Promptly.preview(
 )
 
 # Force specific locale for AI prompt generation
-prompt = Promptly.preview(
+prompt = Promptly.render(
   "content_generation/blog_post_outline", 
   locale: :fr, 
   locals: {
@@ -356,7 +356,7 @@ Format your response as a conversational coaching session, not a formal report.
 
 ```ruby
 # Generate AI coaching content with Liquid template
-prompt = Promptly.preview(
+prompt = Promptly.render(
   "ai_coaching/goal_review",
   locale: :en,
   locals: {
@@ -389,16 +389,16 @@ Promptly.prompts_path = Rails.root.join("lib", "ai_prompts")
 ```ruby
 # Render ERB directly (without file lookup)
 template = "Hello <%= name %>, welcome to <%= app %>!"
-output = Promptly.render(template, locals: {name: "John", app: "MyApp"})
+output = Promptly.render_template(template, locals: {name: "John", app: "MyApp"})
 
 # Render Liquid directly
 template = "Hello {{ name }}, welcome to {{ app }}!"
-output = Promptly.render(template, locals: {name: "John", app: "MyApp"}, engine: :liquid)
+output = Promptly.render_template(template, locals: {name: "John", app: "MyApp"}, engine: :liquid)
 ```
 
 ## API Reference
 
-### `Promptly.preview(identifier, locale: nil, locals: {})`
+### `Promptly.render(identifier, locale: nil, locals: {})`
 
 Renders a template by identifier with locale fallback.
 
@@ -406,7 +406,7 @@ Renders a template by identifier with locale fallback.
 - **locale**: Specific locale (defaults to `I18n.locale`)
 - **locals**: Hash of variables for template
 
-### `Promptly.render(template, locals: {}, engine: :erb)`
+### `Promptly.render_template(template, locals: {}, engine: :erb)`
 
 Renders template string directly.
 

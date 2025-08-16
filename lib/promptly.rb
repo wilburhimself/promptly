@@ -7,7 +7,7 @@ require_relative "promptly/locator"
 module Promptly
   class Error < StandardError; end
 
-  def self.render(template, locals: {}, engine: :erb)
+  def self.render_template(template, locals: {}, engine: :erb)
     Renderer.render(template, locals: locals, engine: engine)
   end
 
@@ -20,10 +20,10 @@ module Promptly
     @prompts_path = path
   end
 
-  # Preview a template by identifier using locator rules
+  # Render a template by identifier using locator rules
   # identifier: "user_onboarding/welcome"
   # locale: defaults to I18n.locale when available
-  def self.preview(identifier, locale: nil, locals: {})
+  def self.render(identifier, locale: nil, locals: {})
     path = Locator.resolve(identifier, locale: locale)
     raise Error, "Template not found for '#{identifier}' (locale: #{locale.inspect}) under #{prompts_path}" unless path
 
