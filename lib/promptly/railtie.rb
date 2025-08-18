@@ -11,6 +11,21 @@ module Promptly
       if defined?(Rails.cache)
         Promptly::Cache.store = Rails.cache
       end
+
+      # Make render_prompt available in mailers, jobs, and controllers
+      if defined?(ActiveSupport)
+        ActiveSupport.on_load(:action_mailer) do
+          include Promptly::Helper
+        end
+
+        ActiveSupport.on_load(:active_job) do
+          include Promptly::Helper
+        end
+
+        ActiveSupport.on_load(:action_controller) do
+          include Promptly::Helper
+        end
+      end
     end
 
     rake_tasks do

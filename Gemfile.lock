@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    promptly (0.1.7)
+    promptly (0.1.8)
       actionview (~> 7.2)
 
 GEM

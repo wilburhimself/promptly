@@ -26,6 +26,12 @@ module Promptly
       lookup = ActionView::LookupContext.new(ActionView::PathSet.new([]))
       av = view_class.new(lookup, {}, nil)
 
+      # Make locals available both as locals and instance variables (e.g., @user)
+      (locals || {}).each do |k, v|
+        ivar = "@#{k}"
+        av.instance_variable_set(ivar, v)
+      end
+
       av.render(inline: template, type: :erb, locals: locals || {})
     end
 
