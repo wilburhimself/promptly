@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "Build maintainable, localized, and testable AI prompts using ERB or Liquid templates with Rails conventions"
   spec.homepage = "https://github.com/wilburhimself/promptly"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 3.3", "< 3.4"
+  spec.required_ruby_version = ">= 3.1", "< 3.4"
 
   spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
