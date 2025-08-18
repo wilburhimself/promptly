@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     paths:
-      - 'lib/gem_guard/version.rb'
+      - 'lib/promptly/version.rb'
 
 permissions:
   contents: write
@@ -51,7 +51,7 @@ jobs:
     - name: Extract version
       id: version
       run: |
-        VERSION=$(ruby -r ./lib/gem_guard/version.rb -e "puts GemGuard::VERSION")
+        VERSION=$(ruby -r ./lib/promptly/version.rb -e "puts Promptly::VERSION")
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "tag=v$VERSION" >> $GITHUB_OUTPUT
     
@@ -66,7 +66,7 @@ jobs:
     
     - name: Build gem
       if: steps.tag_check.outputs.exists == 'false'
-      run: gem build gem_guard.gemspec
+      run: gem build promptly.gemspec
     
     - name: Create Git tag
       if: steps.tag_check.outputs.exists == 'false'
@@ -92,20 +92,20 @@ jobs:
         
         # Create release notes
         cat > release_notes.md << EOF
-        # GemGuard v${{ steps.version.outputs.version }}
+        # Promptly v${{ steps.version.outputs.version }}
         
         ## What's Changed
         $CHANGELOG
         
         ## Installation
         \`\`\`bash
-        gem install gem_guard
+        gem install promptly
         \`\`\`
         
         ## Usage
         \`\`\`bash
-        gem_guard scan
-        gem_guard scan --format json
+        promptly render
+        promptly render --format json
         \`\`\`
         
         **Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREV_TAG...${{ steps.version.outputs.tag }}
