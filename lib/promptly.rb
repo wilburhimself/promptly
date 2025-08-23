@@ -5,6 +5,7 @@ require_relative "promptly/renderer"
 require_relative "promptly/locator"
 require_relative "promptly/cache"
 require_relative "promptly/helper"
+require_relative "promptly/validator"
 
 module Promptly
   class Error < StandardError; end
@@ -43,6 +44,9 @@ module Promptly
   end
 
   private_class_method def self.render_without_cache(identifier, locale: nil, locals: {})
+    schema_path = File.join(prompts_path, "#{identifier}.schema.yml")
+    Validator.validate!(locals, schema_path)
+
     path = Locator.resolve(identifier, locale: locale)
     raise Error, "Template not found for '#{identifier}' (locale: #{locale.inspect}) under #{prompts_path}" unless path
 
