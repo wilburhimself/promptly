@@ -5,6 +5,7 @@ require_relative "promptly/renderer"
 require_relative "promptly/locator"
 require_relative "promptly/cache"
 require_relative "promptly/helper"
+require_relative "promptly/validator"
 
 module Promptly
   class Error < StandardError; end
