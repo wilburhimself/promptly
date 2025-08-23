@@ -6,7 +6,7 @@ module Promptly
       schema = YAML.load_file(schema_path)
       missing_keys = schema.keys - locals.keys.map(&:to_s)
       unless missing_keys.empty?
-        raise ArgumentError, "Missing required locals: #{missing_keys.join(', ')}"
+        raise ArgumentError, "Missing required locals: #{missing_keys.join(", ")}"
       end
 
       # Optional: type checking
