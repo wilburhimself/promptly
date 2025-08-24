@@ -66,16 +66,16 @@ RSpec.describe "Promptly.render with caching" do
 
     # First call should read file and cache result
     result1 = Promptly.render("test", locals: {name: "John"})
-    expect(result1).to eq("Hello John!")
+    expect(result1.content).to eq("Hello John!")
     expect(cache_store.size).to eq(1)
 
     # Second call should use cached result
     result2 = Promptly.render("test", locals: {name: "John"})
-    expect(result2).to eq("Hello John!")
+    expect(result2.content).to eq("Hello John!")
 
     # Verify file was only read once by checking cache was used
     cache_key = cache_store.keys.first
-    expect(cache_store.read(cache_key)).to eq("Hello John!")
+    expect(cache_store.read(cache_key).content).to eq("Hello John!")
   end
 
   it "generates different cache keys for different parameters" do
@@ -105,7 +105,7 @@ RSpec.describe "Promptly.render with caching" do
 
     # This should not use cache
     result = Promptly.render("test", locals: {name: "John"}, cache: false)
-    expect(result).to eq("Hello John!")
+    expect(result.content).to eq("Hello John!")
     expect(cache_store.size).to eq(0)
   end
 
@@ -122,8 +122,8 @@ RSpec.describe "Promptly.render with caching" do
     result_en = Promptly.render("greeting", locale: :en, locals: {name: "John"})
     result_es = Promptly.render("greeting", locale: :es, locals: {name: "Juan"})
 
-    expect(result_en).to eq("Hello John!")
-    expect(result_es).to eq("¡Hola Juan!")
+    expect(result_en.content).to eq("Hello John!")
+    expect(result_es.content).to eq("¡Hola Juan!")
     expect(cache_store.size).to eq(2)
   end
 end
