@@ -6,9 +6,25 @@ require_relative "promptly/locator"
 require_relative "promptly/cache"
 require_relative "promptly/helper"
 require_relative "promptly/validator"
+require "yaml"
 
 module Promptly
   class Error < StandardError; end
+
+  class Prompt
+    attr_reader :content, :version, :author, :change_notes
+
+    def initialize(content:, version: nil, author: nil, change_notes: nil)
+      @content = content
+      @version = version
+      @author = author
+      @change_notes = change_notes
+    end
+
+    def to_s
+      content
+    end
+  end
 
   def self.render_template(template, locals: {}, engine: :erb)
     Renderer.render(template, locals: locals, engine: engine)
@@ -51,8 +67,27 @@ module Promptly
     raise Error, "Template not found for '#{identifier}' (locale: #{locale.inspect}) under #{prompts_path}" unless path
 
     engine = Locator.engine_for(path)
-    template = File.read(path)
-    Renderer.render(template, locals: locals, engine: engine)
+    file_content = File.read(path)
+
+    # Extract YAML front matter
+    match = file_content.match(/\A---\n(.*)
+---\s*\n/m)
+    if match
+      metadata = YAML.safe_load(match[1])
+      template = match.post_match
+    else
+      metadata = {}
+      template = file_content
+    end
+
+    content = Renderer.render(template, locals: locals, engine: engine)
+
+    Prompt.new(
+      content: content,
+      version: metadata["version"],
+      author: metadata["author"],
+      change_notes: metadata["change_notes"]
+    )
   end
 
   def self.default_prompts_path
