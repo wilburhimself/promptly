@@ -140,4 +140,9 @@ namespace :ai_prompts do
     end
     exit status
   end
+
+  desc "Run functional tests for prompts"
+  task :test_prompts do
+    exec "bundle exec rspec spec/prompts"
+  end
 end
