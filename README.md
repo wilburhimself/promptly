@@ -62,6 +62,38 @@ puts ai_response.dig("choices", 0, "message", "content")
 # => AI-generated personalized welcome email in Spanish
 ```
 
+## Structured Outputs (Response Schema Validation)
+
+Promptly supports OpenAI's structured outputs (`guided_json` style) by defining `.response.json` files alongside your templates.
+
+For example, given an output schema `app/prompts/user_onboarding/welcome.response.json`, you can pass it directly to an AI service:
+
+```ruby
+# Returns the schema wrapped in expected OpenAI format
+response_format = Promptly.response_format("user_onboarding/welcome", strict: true)
+
+ai_response = openai_client.chat(
+  parameters: {
+    model: "gpt-4o",
+    messages: [{role: "user", content: prompt}],
+    response_format: response_format
+  }
+)
+```
+
+You can also natively validate the returned JSON string in Ruby to ensure it conforms exactly to the schema:
+
+```ruby
+raw_json = ai_response.dig("choices", 0, "message", "content")
+
+begin
+  # Validates and parses the JSON, or raises Promptly::ValidationError
+  parsed_output = Promptly.validate_response!("user_onboarding/welcome", raw_json)
+rescue Promptly::ValidationError => e
+  # Handle invalid response
+end
+```
+
 ## Development
 
 ```bash

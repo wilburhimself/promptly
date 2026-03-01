@@ -10,6 +10,7 @@ require "yaml"
 
 module Promptly
   class Error < StandardError; end
+  class ValidationError < Error; end
 
   class Prompt
     attr_reader :content, :version, :author, :change_notes
@@ -28,6 +29,42 @@ module Promptly
 
   def self.render_template(template, locals: {}, engine: :erb)
     Renderer.render(template, locals: locals, engine: engine)
+  end
+
+  def self.response_format(identifier, strict: true)
+    schema_path = File.join(prompts_path, "#{identifier}.response.json")
+    raise Error, "Schema file not found for '#{identifier}' at #{schema_path}" unless File.exist?(schema_path)
+
+    require "json"
+    schema_content = JSON.parse(File.read(schema_path))
+
+    {
+      type: "json_schema",
+      json_schema: {
+        name: identifier.gsub(/[^a-zA-Z0-9_-]/, "_"),
+        strict: strict,
+        schema: schema_content
+      }
+    }
+  end
+
+  def self.validate_response!(identifier, json_string)
+    schema_path = File.join(prompts_path, "#{identifier}.response.json")
+    raise Error, "Schema file not found for '#{identifier}' at #{schema_path}" unless File.exist?(schema_path)
+
+    require "json"
+    require "json_schemer"
+
+    schema_content = JSON.parse(File.read(schema_path))
+    parsed_json = JSON.parse(json_string)
+
+    schemer = JSONSchemer.schema(schema_content)
+    unless schemer.valid?(parsed_json)
+      errors = schemer.validate(parsed_json).to_a
+      raise ValidationError, "Response does not match schema: #{errors.inspect}"
+    end
+
+    parsed_json
   end
 
   # Configurable prompts root (defaults to Rails.root/app/prompts when Rails is present)

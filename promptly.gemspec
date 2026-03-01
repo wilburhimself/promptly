@@ -36,6 +36,7 @@ Gem::Specification.new do |spec|
 
   # Runtime dependencies (single target: Rails 7.2.x)
   spec.add_dependency "actionview", "~> 7.2"
+  spec.add_dependency "json_schemer", "~> 2.3"
 
   # Development dependencies
   spec.add_development_dependency "rspec", "~> 3.12"
