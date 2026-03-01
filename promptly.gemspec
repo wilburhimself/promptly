@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name = "promptly"
   spec.version = Promptly::VERSION
   spec.authors = ["Wilbur Suero"]
-  spec.email = ["wilbur@example.com"]
+  spec.email = ["suerowilbur@gmail.com"]
 
   spec.summary = "Opinionated Rails integration for reusable AI prompt templates"
   spec.description = "Build maintainable, localized, and testable AI prompts using ERB or Liquid templates with Rails conventions"
