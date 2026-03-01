@@ -58,7 +58,7 @@ namespace :ai_prompts do
     end
 
     if files.empty?
-      warn "[lint] No templates found under #{prompts_path}#{identifier_filter ? " for '#{identifier_filter}'" : ""}"
+      warn "[lint] No templates found under #{prompts_path}#{" for '#{identifier_filter}'" if identifier_filter}"
       exit 1
     end
 
@@ -103,10 +103,10 @@ namespace :ai_prompts do
             case engine
             when :erb
               # naive checks: @key or key inside ERB output tags
-              present ||= content.match?(/<%[=\-].*?@#{Regexp.escape(key)}[\W]/m)
-              present ||= content.match?(/<%[=\-].*?\b#{Regexp.escape(key)}\b/m)
+              present ||= content.match?(/<%[=-].*?@#{Regexp.escape(key)}\W/m)
+              present ||= content.match?(/<%[=-].*?\b#{Regexp.escape(key)}\b/m)
             when :liquid
-              present ||= content.match?(/\{\{\s*#{Regexp.escape(key)}[\s\|\}]/)
+              present ||= content.match?(/\{\{\s*#{Regexp.escape(key)}[\s|}]/)
             end
             missing << key unless present
           end

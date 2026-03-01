@@ -30,7 +30,7 @@ RSpec.describe Promptly do
 
     it "returns the structured output format for OpenAI" do
       result = Promptly.response_format(identifier)
-      
+
       expect(result).to eq({
         type: "json_schema",
         json_schema: {
