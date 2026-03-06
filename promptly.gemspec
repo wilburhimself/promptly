@@ -34,14 +34,13 @@ Gem::Specification.new do |spec|
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
-  # Runtime dependencies (single target: Rails 7.2.x)
-  spec.add_dependency "actionview", "~> 7.2"
+  # Runtime dependencies (Rails 7.2+ and Rails 8)
+  spec.add_dependency "actionview", ">= 7.2", "< 9"
   spec.add_dependency "json_schemer", "~> 2.3"
 
   # Development dependencies
   spec.add_development_dependency "rspec", "~> 3.12"
   spec.add_development_dependency "standard", "~> 1.37"
   spec.add_development_dependency "liquid", "~> 5.5"
-  # Development dependencies
-  spec.add_development_dependency "railties", "~> 7.2"
+  spec.add_development_dependency "railties", ">= 7.2", "< 9"
 end
