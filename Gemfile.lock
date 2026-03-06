@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    promptly (0.1.17)
+    promptly (0.1.18)
       actionview (>= 7.2, < 9)
       json_schemer (~> 2.3)
 
